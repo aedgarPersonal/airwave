@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getOwnedStation } from "@/app/lib/auth";
 import { saveIdentity } from "../actions";
+import { ThemeAssistant } from "@/app/components/dashboard/ThemeAssistant";
 
 export default async function IdentityPage({
   params,
@@ -63,6 +64,11 @@ export default async function IdentityPage({
           </button>
         </div>
       </form>
+
+      <div className="mt-10">
+        <h2 className="text-lg font-display mb-3">Theme</h2>
+        <ThemeAssistant slug={slug} initialTheme={station.theme_tokens} />
+      </div>
     </div>
   );
 }

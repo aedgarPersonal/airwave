@@ -3,6 +3,7 @@ import { getAdminStation } from "@/app/lib/stations";
 import { getOwnedStation } from "@/app/lib/auth";
 import { addShow, deleteShow } from "../actions";
 import { format12 } from "@/app/lib/current-show";
+import { ScheduleImporter } from "@/app/components/dashboard/ScheduleImporter";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Daily"] as const;
 
@@ -32,9 +33,13 @@ export default async function SchedulePage({
         shows, tick &ldquo;crosses midnight&rdquo; — we&apos;ll handle the rest.
       </p>
 
+      <div className="mt-8">
+        <ScheduleImporter slug={slug} />
+      </div>
+
       <div className="mt-8 rounded-2xl border border-line bg-bg-2 p-5">
         <p className="text-xs font-display tracking-widest text-muted">
-          ADD A SHOW
+          ADD A SHOW MANUALLY
         </p>
         <form
           action={async (formData) => {

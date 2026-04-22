@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getAdminStation } from "@/app/lib/stations";
 import { getOwnedStation } from "@/app/lib/auth";
 import { addSponsor, deleteSponsor } from "../actions";
+import { SponsorImporter } from "@/app/components/dashboard/SponsorImporter";
 
 const ACCENT_DOT: Record<string, string> = {
   green: "#009b3a",
@@ -29,9 +30,13 @@ export default async function SponsorsPage({
         grid on your station page and in your embed.
       </p>
 
+      <div className="mt-8">
+        <SponsorImporter slug={slug} />
+      </div>
+
       <div className="mt-8 rounded-2xl border border-line bg-bg-2 p-5">
         <p className="text-xs font-display tracking-widest text-muted">
-          ADD A SPONSOR
+          ADD A SPONSOR MANUALLY
         </p>
         <form
           action={async (fd) => {

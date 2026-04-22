@@ -11,6 +11,7 @@ const TABS = [
   { id: "contact", label: "Contact" },
   { id: "donate", label: "Donate" },
   { id: "embed", label: "Embed" },
+  { id: "domain", label: "Domain" },
   { id: "publish", label: "Publish" },
 ];
 
