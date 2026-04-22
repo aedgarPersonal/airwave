@@ -3,6 +3,14 @@ import { Inter, Bebas_Neue } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
+// If Clerk isn't configured yet, skip the provider so public pages still
+// render. Auth-protected routes (dashboard, station admin) will bounce to a
+// sign-in page that will itself fail loudly — which is the correct signal
+// that the platform admin needs to set CLERK_SECRET_KEY + publishable key.
+const CLERK_CONFIGURED =
+  !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
+  !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.includes("placeholder");
+
 const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
@@ -28,14 +36,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <ClerkProvider>
-      <html
-        lang="en"
-        className={`${inter.variable} ${bebas.variable} h-full antialiased`}
-      >
-        <body className="min-h-full flex flex-col">{children}</body>
-      </html>
-    </ClerkProvider>
+  const body = (
+    <html
+      lang="en"
+      className={`${inter.variable} ${bebas.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">{children}</body>
+    </html>
   );
+  return CLERK_CONFIGURED ? <ClerkProvider>{body}</ClerkProvider> : body;
 }
