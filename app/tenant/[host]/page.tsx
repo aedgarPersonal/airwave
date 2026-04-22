@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { resolveHostToSlug, getPublicStation } from "@/app/lib/stations";
 import { Player } from "@/app/components/tenant/Player";
@@ -5,12 +6,61 @@ import { Schedule } from "@/app/components/tenant/Schedule";
 import { Sponsors } from "@/app/components/tenant/Sponsors";
 import { Contact } from "@/app/components/tenant/Contact";
 import { Support } from "@/app/components/tenant/Support";
+import { InstallPrompt } from "@/app/components/tenant/InstallPrompt";
 import type { ThemeTokens } from "@/app/lib/types";
 import { DEFAULT_THEME } from "@/app/lib/types";
 
 const ROOT = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "airwave.io";
 
 type RouteParams = { host: string };
+
+// Per-station metadata: title, description, OG, theme-color, and the
+// apple-touch-icon link so iOS installs show the station's logo.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<RouteParams>;
+}): Promise<Metadata> {
+  const { host } = await params;
+  const slug = await resolveHostToSlug(decodeURIComponent(host), ROOT);
+  if (!slug) return { title: "Airwave" };
+  const data = await getPublicStation(slug);
+  if (!data) return { title: "Airwave" };
+  const { station } = data;
+  const title = station.tagline
+    ? `${station.name} — ${station.tagline}`
+    : station.name;
+  const description =
+    station.description ?? `${station.name} — tune in live.`;
+  const themeColor = station.theme_tokens?.accent1 ?? "#009b3a";
+  const ogImage = station.logo_url ?? undefined;
+
+  return {
+    title,
+    description,
+    applicationName: station.name,
+    appleWebApp: {
+      capable: true,
+      title: station.name,
+      statusBarStyle: "black-translucent",
+    },
+    icons: ogImage
+      ? {
+          icon: ogImage,
+          apple: ogImage,
+        }
+      : undefined,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      images: ogImage ? [ogImage] : undefined,
+    },
+    other: {
+      "theme-color": themeColor,
+    },
+  };
+}
 
 export default async function TenantPage({
   params,
@@ -80,6 +130,11 @@ export default async function TenantPage({
             <a href="#contact" className="hover:opacity-100 transition">
               Contact
             </a>
+            <InstallPrompt
+              slug={station.slug}
+              stationName={station.name}
+              asButton
+            />
             {station.donate?.url && (
               <a
                 href={station.donate.url}
@@ -146,6 +201,8 @@ export default async function TenantPage({
           </div>
         </div>
       </footer>
+
+      <InstallPrompt slug={station.slug} stationName={station.name} />
     </div>
   );
 }
