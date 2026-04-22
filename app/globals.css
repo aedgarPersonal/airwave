@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+/*
+ * The platform dashboard uses a neutral palette — the colourful stuff lives on
+ * tenant pages, which receive themes via inline CSS variables at render time.
+ * See app/tenant/[host]/ThemeProvider for how station themes are applied.
+ */
+
+@theme inline {
+  --color-bg: #09090b;
+  --color-bg-2: #111113;
+  --color-bg-3: #1a1a1e;
+  --color-line: rgba(255, 255, 255, 0.08);
+  --color-fg: #f4f4f5;
+  --color-muted: rgba(244, 244, 245, 0.6);
+  --color-accent: #6366f1;
+  --color-accent-2: #14b8a6;
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), Impact, sans-serif;
+  letter-spacing: 0.01em;
+}
+
+/*
+ * Tenant-scoped theming. Each tenant page wraps its content in an element
+ * with data-theme, and the theme tokens are injected as CSS variables. This
+ * keeps per-tenant styling isolated from the dashboard chrome.
+ */
+[data-theme="tenant"] {
+  --t-ink: #0b0f0b;
+  --t-ink-2: #141b15;
+  --t-cream: #f6efe1;
+  --t-accent1: #009b3a;
+  --t-accent2: #fed100;
+  --t-accent3: #e1403b;
+  background: var(--t-ink);
+  color: var(--t-cream);
+}
+
+[data-theme="tenant"] .flag-stripes {
+  background: linear-gradient(
+    90deg,
+    var(--t-accent1) 0 33.33%,
+    var(--t-accent2) 33.33% 66.66%,
+    var(--t-accent3) 66.66% 100%
+  );
+}
+
+[data-theme="tenant"] .caribbean-gradient {
+  background: radial-gradient(
+      circle at 20% 20%,
+      color-mix(in srgb, var(--t-accent2) 22%, transparent) 0%,
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 85% 15%,
+      color-mix(in srgb, var(--t-accent3) 20%, transparent) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 50% 120%,
+      color-mix(in srgb, var(--t-accent1) 35%, transparent) 0%,
+      transparent 55%
+    ),
+    var(--t-ink);
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--t-accent1) 55%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 18px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.live-dot {
+  animation: pulse-ring 2s infinite;
+}
+
+@keyframes bar {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.eq-bar {
+  transform-origin: bottom;
+  animation: bar 0.9s ease-in-out infinite;
+}

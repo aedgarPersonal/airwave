@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Airwave">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b0b10"/>
+      <stop offset="100%" stop-color="#1a1a24"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <g fill="none" stroke="#6366f1" stroke-width="18" stroke-linecap="round">
+    <path d="M120 256a136 136 0 0 1 272 0"/>
+    <path d="M172 256a84 84 0 0 1 168 0"/>
+    <path d="M224 256a32 32 0 0 1 64 0"/>
+  </g>
+  <circle cx="256" cy="256" r="16" fill="#14b8a6"/>
+  <text x="256" y="420" text-anchor="middle" fill="#f4f4f5"
+        font-family="'Bebas Neue','Impact',sans-serif"
+        font-size="56" letter-spacing="10">AIRWAVE</text>
+</svg>
