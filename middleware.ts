@@ -1,9 +1,8 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-// Pages that require Clerk auth. Everything under /dashboard or /s/ and the
-// authenticated API surface. Public marketing, station pages, embed and
-// public API stay open.
+const ROOT = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "airwave.io";
+
 const isProtectedRoute = createRouteMatcher([
   "/dashboard(.*)",
   "/s/(.*)",
@@ -11,44 +10,56 @@ const isProtectedRoute = createRouteMatcher([
   "/api/ai/(.*)",
 ]);
 
-// The domain we treat as the "dashboard" origin. Everything else is a
-// tenant landing page — either <slug>.ROOT or a verified custom domain.
-const ROOT = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "airwave.io";
-
-export default clerkMiddleware(async (authFn, req) => {
-  const url = req.nextUrl;
-  const host = (req.headers.get("host") || "").toLowerCase().split(":")[0];
-  const rootBase = ROOT.toLowerCase().split(":")[0];
-
-  // Identify whether this request is hitting the dashboard or a tenant site.
-  const isDashboardHost =
-    host === rootBase ||
-    host === `app.${rootBase}` ||
-    // Vercel preview deployments live under *.vercel.app — treat them as the
-    // dashboard so we can always reach /dashboard from a preview URL.
+// Returns true when this request belongs to the dashboard surface (marketing
+// + signed-in tools). Anything else is a tenant host.
+function isDashboardHost(host: string) {
+  const base = ROOT.toLowerCase().split(":")[0];
+  return (
+    host === base ||
+    host === `app.${base}` ||
     host.endsWith(".vercel.app") ||
-    host === "localhost";
+    host === "localhost"
+  );
+}
 
-  if (isDashboardHost) {
+// Tenant requests rewrite to /tenant/[host] so the shared page can resolve
+// both subdomains and custom domains through one code path.
+function tenantRewrite(req: NextRequest, host: string) {
+  const url = req.nextUrl;
+  if (url.pathname.startsWith("/api") || url.pathname.startsWith("/_next")) {
+    return NextResponse.next();
+  }
+  const rewritten = url.clone();
+  rewritten.pathname = `/tenant/${host}${url.pathname === "/" ? "" : url.pathname}`;
+  return NextResponse.rewrite(rewritten);
+}
+
+// When Clerk isn't configured we can't call clerkMiddleware() — it throws at
+// module init. Use a plain middleware that only does subdomain routing.
+const CLERK_CONFIGURED =
+  !!process.env.CLERK_SECRET_KEY &&
+  !process.env.CLERK_SECRET_KEY.includes("placeholder");
+
+const withClerk = clerkMiddleware(async (authFn, req) => {
+  const host = (req.headers.get("host") || "").toLowerCase().split(":")[0];
+  if (isDashboardHost(host)) {
     if (isProtectedRoute(req)) await authFn.protect();
     return NextResponse.next();
   }
-
-  // Tenant host — rewrite to the /tenant/[host] route which resolves the slug.
-  // We pass the raw host along so the resolver can handle both subdomains and
-  // custom domains in one place.
-  if (!url.pathname.startsWith("/api") && !url.pathname.startsWith("/_next")) {
-    const rewritten = req.nextUrl.clone();
-    rewritten.pathname = `/tenant/${host}${url.pathname === "/" ? "" : url.pathname}`;
-    return NextResponse.rewrite(rewritten);
-  }
-
-  return NextResponse.next();
+  return tenantRewrite(req, host);
 });
+
+function withoutClerk(req: NextRequest) {
+  const host = (req.headers.get("host") || "").toLowerCase().split(":")[0];
+  if (isDashboardHost(host)) return NextResponse.next();
+  return tenantRewrite(req, host);
+}
+
+const handler = CLERK_CONFIGURED ? withClerk : withoutClerk;
+export default handler;
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and common static assets
     "/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)",
     "/",
     "/(api|trpc)(.*)",
