@@ -1,5 +1,10 @@
 import Link from "next/link";
-import { Show } from "@clerk/nextjs";
+
+// When Clerk is wired up we'll render conditional sign-in vs dashboard CTAs.
+// For the pre-auth demo phase we render a single "Get started" CTA.
+const CLERK_CONFIGURED =
+  !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
+  !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.includes("placeholder");
 
 export default function Home() {
   return (
@@ -11,25 +16,17 @@ export default function Home() {
           </span>
         </Link>
         <div className="flex items-center gap-3 text-sm">
-          <Show when="signed-out">
+          {CLERK_CONFIGURED && (
             <Link href="/sign-in" className="text-muted hover:text-fg transition-colors">
               Sign in
             </Link>
-            <Link
-              href="/sign-up"
-              className="rounded-full bg-accent text-bg px-4 py-1.5 font-medium hover:opacity-90 transition"
-            >
-              Get started
-            </Link>
-          </Show>
-          <Show when="signed-in">
-            <Link
-              href="/dashboard"
-              className="rounded-full bg-accent text-bg px-4 py-1.5 font-medium hover:opacity-90 transition"
-            >
-              Open dashboard
-            </Link>
-          </Show>
+          )}
+          <Link
+            href={CLERK_CONFIGURED ? "/sign-up" : "#how"}
+            className="rounded-full bg-accent text-bg px-4 py-1.5 font-medium hover:opacity-90 transition"
+          >
+            {CLERK_CONFIGURED ? "Get started" : "How it works"}
+          </Link>
         </div>
       </nav>
 
@@ -48,22 +45,14 @@ export default function Home() {
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Show when="signed-out">
-            <Link
-              href="/sign-up"
-              className="rounded-full bg-accent text-bg px-6 py-3 font-medium hover:opacity-90 transition"
-            >
-              Bring your station online →
-            </Link>
-          </Show>
-          <Show when="signed-in">
-            <Link
-              href="/dashboard"
-              className="rounded-full bg-accent text-bg px-6 py-3 font-medium hover:opacity-90 transition"
-            >
-              Go to dashboard →
-            </Link>
-          </Show>
+          <Link
+            href={CLERK_CONFIGURED ? "/sign-up" : "/r/riddimwsm"}
+            className="rounded-full bg-accent text-bg px-6 py-3 font-medium hover:opacity-90 transition"
+          >
+            {CLERK_CONFIGURED
+              ? "Bring your station online →"
+              : "See a live station →"}
+          </Link>
           <a
             href="#how"
             className="rounded-full border border-line text-fg px-6 py-3 font-medium hover:bg-bg-2 transition"
